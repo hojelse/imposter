@@ -14,4 +14,6 @@ No accounts, no network, no backend — just pass the phone around.
 It's plain static HTML/CSS/JS, so it runs on **GitHub Pages**:
 repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.
 
-Edit `words.js` to change the word list.
+Word lists (each word paired with the imposter's hint) are in `words-en.js` and `words-da.js`.
+The language follows the phone (Danish or English) and can be switched with the
+**DA / EN** button on the start screen.

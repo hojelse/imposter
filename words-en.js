@@ -1,7 +1,7 @@
 // [word, hint] pairs. Everyone but the imposter gets the word; the imposter
 // only gets the hint — something vaguely related, so they can bluff without
 // knowing the word. Add or remove freely.
-const WORDS = [
+const WORDS_EN = [
   ["Beach", "Summer"],
   ["Hospital", "Waiting"],
   ["Airplane", "Travel"],

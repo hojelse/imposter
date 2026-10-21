@@ -5,6 +5,39 @@
 
 const $ = (id) => document.getElementById(id);
 
+// ---------- Language ----------
+
+const LANGS = {
+  en: {
+    words: WORDS_EN,
+    text: {
+      players: "players", start: "Start", hold: "Hold", next: "Next", done: "Done",
+      player: "Player", starts: "starts", again: "New round", imposter: "Imposter", hint: "Hint",
+    },
+  },
+  da: {
+    words: WORDS_DA,
+    text: {
+      players: "spillere", start: "Start", hold: "Hold", next: "Næste", done: "Færdig",
+      player: "Spiller", starts: "starter", again: "Ny runde", imposter: "Imposter", hint: "Hint",
+    },
+  },
+};
+
+let lang = navigator.language.toLowerCase().startsWith("da") ? "da" : "en";
+try {
+  const saved = localStorage.getItem("imposter-lang");
+  if (saved in LANGS) lang = saved;
+} catch {}
+
+const t = (key) => LANGS[lang].text[key];
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  for (const el of document.querySelectorAll("[data-text]")) el.textContent = t(el.dataset.text);
+  $("lang-btn").textContent = lang.toUpperCase();
+}
+
 let players = 4;
 let imposter = 0; // index of the imposter for this round
 let word = "";
@@ -18,23 +51,25 @@ let seen = false; // has the current player looked yet?
 function show(screen) {
   for (const s of ["setup", "turn", "done"]) $(s).hidden = s !== screen;
   $("reset-btn").hidden = screen === "setup";
+  $("lang-btn").hidden = screen !== "setup";
 }
 
 function showTurn() {
   seen = false;
   hideWord();
-  $("turn-label").textContent = `Player ${turn + 1} / ${players}`;
+  $("turn-label").textContent = `${t("player")} ${turn + 1} / ${players}`;
   $("next-btn").classList.add("waiting");
-  $("next-btn").textContent = turn === players - 1 ? "Done" : "Next";
+  $("next-btn").textContent = turn === players - 1 ? t("done") : t("next");
   show("turn");
 }
 
 // ---------- Game ----------
 
 function newRound() {
+  const words = LANGS[lang].words;
   do {
-    [word, hint] = WORDS[Math.floor(Math.random() * WORDS.length)];
-  } while (word === lastWord && WORDS.length > 1);
+    [word, hint] = words[Math.floor(Math.random() * words.length)];
+  } while (word === lastWord && words.length > 1);
   lastWord = word;
   imposter = Math.floor(Math.random() * players);
   turn = 0;
@@ -47,7 +82,7 @@ function nextPlayer() {
     showTurn();
   } else {
     const first = Math.floor(Math.random() * players) + 1;
-    $("first-player").textContent = `Player ${first}`;
+    $("first-player").textContent = `${t("player")} ${first}`;
     show("done");
   }
 }
@@ -56,8 +91,8 @@ function nextPlayer() {
 
 function showWord() {
   const isImposter = turn === imposter;
-  $("word").textContent = isImposter ? "Imposter" : word;
-  $("hint").textContent = `Hint: ${hint}`;
+  $("word").textContent = isImposter ? t("imposter") : word;
+  $("hint").textContent = `${t("hint")}: ${hint}`;
   $("hint").hidden = !isImposter;
   $("reveal").classList.toggle("imposter", isImposter);
   $("word").hidden = false;
@@ -151,6 +186,16 @@ $("start-btn").addEventListener("click", () => {
   } catch {}
   newRound();
 });
+
+$("lang-btn").addEventListener("click", () => {
+  lang = lang === "en" ? "da" : "en";
+  try {
+    localStorage.setItem("imposter-lang", lang);
+  } catch {}
+  applyLang();
+});
+
+applyLang();
 
 $("next-btn").addEventListener("click", nextPlayer);
 $("again-btn").addEventListener("click", newRound);

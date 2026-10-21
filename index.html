@@ -7,10 +7,11 @@
   <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
   <header>
+    <button id="lang-btn" class="lang" aria-label="Language"></button>
     <button id="reset-btn" class="reset" hidden aria-label="Reset">&times;</button>
   </header>
 
@@ -18,9 +19,9 @@
   <section id="setup" class="screen">
     <div class="center">
       <div id="picker" class="picker" tabindex="0" aria-label="Number of players"></div>
-      <p class="label">players</p>
+      <p class="label" data-text="players"></p>
     </div>
-    <button id="start-btn" class="primary">Start</button>
+    <button id="start-btn" class="primary" data-text="start"></button>
   </section>
 
   <!-- Turn: one player at a time holds to see their word -->
@@ -29,7 +30,7 @@
     <button id="reveal" class="card">
       <span id="word" hidden></span>
       <span id="hint" hidden></span>
-      <span id="reveal-hint">Hold</span>
+      <span id="reveal-hint" data-text="hold"></span>
     </button>
     <button id="next-btn" class="primary waiting">Next</button>
   </section>
@@ -38,12 +39,13 @@
   <section id="done" class="screen" hidden>
     <div class="center">
       <p id="first-player" class="big"></p>
-      <p class="label">starts</p>
+      <p class="label" data-text="starts"></p>
     </div>
-    <button id="again-btn" class="primary">New round</button>
+    <button id="again-btn" class="primary" data-text="again"></button>
   </section>
 
-  <script src="words.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="words-en.js?v=10"></script>
+  <script src="words-da.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
