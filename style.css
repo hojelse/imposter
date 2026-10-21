@@ -163,6 +163,8 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
   justify-content: center;
   padding: 24px;
@@ -183,5 +185,6 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
 }
 
 .card.imposter #word { color: var(--imposter); }
+#hint { color: var(--muted); font-size: 1.4rem; font-weight: 600; }
 
 #reveal-hint { color: var(--muted); font-size: 1.4rem; font-weight: 600; }

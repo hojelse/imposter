@@ -1,13 +1,14 @@
 // Imposter — pass-and-play on a single phone.
 //
 // Pick the number of players, then pass the phone around: each player holds
-// the card to see their word (or "Imposter") and lets go to hide it again.
+// the card to see their word (or "Imposter" plus a hint) and lets go to hide it again.
 
 const $ = (id) => document.getElementById(id);
 
 let players = 4;
 let imposter = 0; // index of the imposter for this round
 let word = "";
+let hint = ""; // shown to the imposter only
 let lastWord = "";
 let turn = 0;     // index of the player whose turn it is
 let seen = false; // has the current player looked yet?
@@ -32,7 +33,7 @@ function showTurn() {
 
 function newRound() {
   do {
-    word = WORDS[Math.floor(Math.random() * WORDS.length)];
+    [word, hint] = WORDS[Math.floor(Math.random() * WORDS.length)];
   } while (word === lastWord && WORDS.length > 1);
   lastWord = word;
   imposter = Math.floor(Math.random() * players);
@@ -56,6 +57,8 @@ function nextPlayer() {
 function showWord() {
   const isImposter = turn === imposter;
   $("word").textContent = isImposter ? "Imposter" : word;
+  $("hint").textContent = `Hint: ${hint}`;
+  $("hint").hidden = !isImposter;
   $("reveal").classList.toggle("imposter", isImposter);
   $("word").hidden = false;
   $("reveal-hint").hidden = true;
@@ -68,6 +71,7 @@ function showWord() {
 function hideWord() {
   $("word").hidden = true;
   $("word").textContent = "";
+  $("hint").hidden = true;
   $("reveal").classList.remove("imposter");
   $("reveal-hint").hidden = false;
   if (seen) $("next-btn").classList.remove("waiting");
