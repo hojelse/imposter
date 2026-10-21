@@ -57,12 +57,9 @@ p { margin: 0; }
 
 header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   min-height: 56px;
 }
-
-.title { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.04em; }
 
 button {
   font: inherit;
@@ -73,10 +70,13 @@ button {
 }
 
 button.reset {
+  width: 56px;
+  height: 56px;
+  margin-right: -16px; /* big tap target, icon stays near the edge */
   background: none;
   color: var(--muted);
-  font-size: 1rem;
-  padding: 12px 0 12px 16px; /* big tap target, text stays aligned right */
+  font-size: 2rem;
+  line-height: 1;
 }
 
 /* ---------- Screens ---------- */
@@ -101,7 +101,7 @@ button.reset {
 }
 
 .label { color: var(--muted); font-size: 1.05rem; }
-.hint { color: var(--muted); font-size: 0.9rem; }
+.big { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
 
 button.primary {
   width: 100%;
@@ -158,8 +158,6 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
 
 /* ---------- Turn ---------- */
 
-.turn-head { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
-.turn-label { font-size: 2rem; font-weight: 800; }
 
 .card {
   flex: 1;
@@ -170,7 +168,6 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
   padding: 24px;
   border-radius: 28px;
   background: var(--surface);
-  border: 2px dashed var(--border);
   transition: background 0.15s, transform 0.15s;
   /* A long press must not select text or open the phone's callout menu. */
   -webkit-touch-callout: none;
@@ -187,11 +184,4 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
 
 .card.imposter #word { color: var(--imposter); }
 
-#reveal-hint { display: flex; flex-direction: column; gap: 8px; }
-#reveal-hint[hidden] { display: none; }
-.hint-big { font-size: 1.6rem; font-weight: 700; }
-.hint-small { color: var(--muted); }
-
-/* ---------- Done ---------- */
-
-.first-player { font-size: 1.3rem; color: var(--accent); font-weight: 700; }
+#reveal-hint { color: var(--muted); font-size: 1.4rem; font-weight: 600; }

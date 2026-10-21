@@ -7,50 +7,42 @@
   <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <header>
-    <span class="title">Imposter</span>
-    <button id="reset-btn" class="reset" hidden>Reset</button>
+    <button id="reset-btn" class="reset" hidden aria-label="Reset">&times;</button>
   </header>
 
   <!-- Setup: swipe to choose the number of players -->
   <section id="setup" class="screen">
     <div class="center">
-      <p class="label">How many players?</p>
       <div id="picker" class="picker" tabindex="0" aria-label="Number of players"></div>
-      <p class="hint">Swipe to change</p>
+      <p class="label">players</p>
     </div>
     <button id="start-btn" class="primary">Start</button>
   </section>
 
   <!-- Turn: one player at a time holds to see their word -->
   <section id="turn" class="screen" hidden>
-    <div class="turn-head">
-      <p class="label">Pass the phone to</p>
-      <p id="turn-label" class="turn-label"></p>
-    </div>
+    <p id="turn-label" class="label"></p>
     <button id="reveal" class="card">
       <span id="word" hidden></span>
-      <span id="reveal-hint">
-        <span class="hint-big">Hold to reveal</span>
-        <span class="hint-small">Let go to hide</span>
-      </span>
+      <span id="reveal-hint">Hold</span>
     </button>
-    <button id="next-btn" class="primary waiting">Next player</button>
+    <button id="next-btn" class="primary waiting">Next</button>
   </section>
 
   <!-- Done: everyone has seen their word -->
   <section id="done" class="screen" hidden>
     <div class="center">
-      <p class="turn-label">Everyone has their word</p>
-      <p id="first-player" class="first-player"></p>
+      <p id="first-player" class="big"></p>
+      <p class="label">starts</p>
     </div>
     <button id="again-btn" class="primary">New round</button>
   </section>
 
-  <script src="words.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="words.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

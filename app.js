@@ -22,9 +22,9 @@ function show(screen) {
 function showTurn() {
   seen = false;
   hideWord();
-  $("turn-label").textContent = `Player ${turn + 1} of ${players}`;
+  $("turn-label").textContent = `Player ${turn + 1} / ${players}`;
   $("next-btn").classList.add("waiting");
-  $("next-btn").textContent = turn === players - 1 ? "Done" : "Next player";
+  $("next-btn").textContent = turn === players - 1 ? "Done" : "Next";
   show("turn");
 }
 
@@ -46,7 +46,7 @@ function nextPlayer() {
     showTurn();
   } else {
     const first = Math.floor(Math.random() * players) + 1;
-    $("first-player").textContent = `Player ${first} starts`;
+    $("first-player").textContent = `Player ${first}`;
     show("done");
   }
 }
