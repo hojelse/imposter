@@ -1,22 +1,17 @@
 # Imposter
 
-A tiny website for setting up a round of the party game *Imposter*.
+A tiny single-phone website for setting up a round of the party game *Imposter*.
+No accounts, no network, no backend — just pass the phone around.
 
-1. Everyone opens the site — there are no codes; all visitors join the same game.
-2. The page shows how many people are connected. Once there are at least 3, anyone can tap **Start**.
-3. One random player gets the word **Imposter**; everyone else gets the same random word.
-4. **Reset** sends everyone back to the connect screen for another round.
+1. Drag the slider to choose the number of players (3–20) and tap **Start**.
+2. Pass the phone around. Each player **holds** the card to see their word and lets go to hide it.
+   One random player sees **Imposter**; everyone else sees the same random word.
+3. After the last player, the page picks who starts. Tap **New round** for another word,
+   or **Reset** to go back to the player count.
 
-## How it works / hosting
+## Hosting
 
-It's fully static (HTML/CSS/JS), so it runs on **GitHub Pages** — no backend of our own.
-Players connect peer-to-peer with WebRTC via [PeerJS](https://peerjs.com/); PeerJS's free
-public broker is only used to introduce the browsers to each other. The first visitor quietly
-acts as host and holds the game state; if they leave, another player takes over automatically
-(the current round is lost and everyone returns to the connect screen).
-
-Because there is a single shared game, anyone who opens the site at the same time joins it.
-
-To publish: repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.
+It's plain static HTML/CSS/JS, so it runs on **GitHub Pages**:
+repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.
 
 Edit `words.js` to change the word list.

@@ -4,35 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=3">
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <main>
     <h1>Imposter</h1>
 
-    <!-- Lobby: the "connect" screen -->
-    <section id="lobby" class="screen" hidden>
-      <p class="count"><span id="player-count">1</span> connected</p>
-      <p id="need-more" class="hint">Need at least 3 players to start</p>
-      <button id="start-btn" class="primary" disabled>Start</button>
+    <!-- Setup: choose the number of players -->
+    <section id="setup" class="screen">
+      <p class="label">Players</p>
+      <p id="count-label" class="big-number">4</p>
+      <input id="count" type="range" min="3" max="20" value="4" aria-label="Number of players">
+      <button id="start-btn" class="primary">Start</button>
     </section>
 
-    <!-- Game: show this player's word -->
-    <section id="game" class="screen" hidden>
-      <p class="label">Your word</p>
-      <button id="word-card" class="card hidden-word">
-        <span id="word"></span>
-        <small>Tap to reveal / hide</small>
+    <!-- Turn: one player at a time holds to see their word -->
+    <section id="turn" class="screen" hidden>
+      <p class="label">Pass the phone to</p>
+      <p id="turn-label" class="turn-label"></p>
+      <button id="reveal" class="card">
+        <span id="word" hidden></span>
+        <span id="reveal-hint">Hold to reveal</span>
       </button>
-      <p class="hint"><span id="game-count"></span> players in this round</p>
-      <button id="reset-btn">Reset</button>
+      <button id="next-btn" class="primary" hidden>Next player</button>
     </section>
 
-    <p id="status" class="status"></p>
+    <!-- Done: everyone has seen their word -->
+    <section id="done" class="screen" hidden>
+      <p class="turn-label">Everyone has their word</p>
+      <p id="first-player" class="hint"></p>
+      <button id="again-btn" class="primary">New round</button>
+    </section>
+
+    <button id="reset-btn" class="reset" hidden>Reset</button>
   </main>
 
-  <script src="words.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="words.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
