@@ -1,7 +1,7 @@
 // Imposter — pass-and-play on a single phone.
 //
 // Pick the number of players, then pass the phone around: each player holds
-// the card to see their word (or "Imposter" plus a hint) and lets go to hide it again.
+// the screen to unblur their word (or "Imposter" plus a hint) and lets go to hide it again.
 
 const $ = (id) => document.getElementById(id);
 
@@ -13,6 +13,7 @@ const LANGS = {
     text: {
       players: "players", start: "Start", hold: "Hold", next: "Next", done: "Done",
       player: "Player", starts: "starts", again: "New round", imposter: "Imposter", hint: "Hint",
+      secret: "Secret word",
     },
   },
   da: {
@@ -20,6 +21,7 @@ const LANGS = {
     text: {
       players: "spillere", start: "Start", hold: "Hold", next: "Næste", done: "Færdig",
       player: "Spiller", starts: "starter", again: "Ny runde", imposter: "Imposter", hint: "Hint",
+      secret: "Hemmeligt ord",
     },
   },
 };
@@ -95,20 +97,19 @@ function showWord() {
   $("hint").textContent = `${t("hint")}: ${hint}`;
   $("hint").hidden = !isImposter;
   $("reveal").classList.toggle("imposter", isImposter);
-  $("word").hidden = false;
-  $("reveal-hint").hidden = true;
+  $("reveal").classList.add("revealed");
   seen = true;
   try {
     navigator.vibrate(15); // a little buzz on phones that support it
   } catch {}
 }
 
+// While hidden, the blur shows a fixed placeholder rather than the real word,
+// so its length or colour can't give anything away.
 function hideWord() {
-  $("word").hidden = true;
-  $("word").textContent = "";
+  $("word").textContent = t("secret");
   $("hint").hidden = true;
-  $("reveal").classList.remove("imposter");
-  $("reveal-hint").hidden = false;
+  $("reveal").classList.remove("imposter", "revealed");
   if (seen) $("next-btn").classList.remove("waiting");
 }
 
@@ -119,7 +120,7 @@ reveal.addEventListener("pointerdown", (e) => {
 });
 for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) {
   reveal.addEventListener(ev, () => {
-    if (!$("word").hidden) hideWord();
+    if (reveal.classList.contains("revealed")) hideWord();
   });
 }
 // Long-pressing shouldn't open the phone's context menu.
