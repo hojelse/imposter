@@ -125,6 +125,8 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
   --item: 88px;
   display: flex;
   overflow-x: auto;
+  overflow-y: hidden; /* the enlarged middle number mustn't make it scroll vertically */
+  touch-action: pan-x;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   /* Lets the first and last numbers scroll to the middle. */
