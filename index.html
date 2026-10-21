@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imposter</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Imposter</h1>
+
+    <!-- Home: create or join a room -->
+    <section id="home" class="screen">
+      <button id="create-btn" class="primary">Create game</button>
+      <div class="divider">or join one</div>
+      <form id="join-form">
+        <input id="join-code" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters">
+        <button type="submit">Join</button>
+      </form>
+    </section>
+
+    <!-- Lobby: the "connect" screen -->
+    <section id="lobby" class="screen" hidden>
+      <p class="label">Room code</p>
+      <p id="room-code" class="code"></p>
+      <button id="copy-link" class="link">Copy invite link</button>
+      <p class="count"><span id="player-count">1</span> connected</p>
+      <p id="need-more" class="hint">Need at least 3 players to start</p>
+      <button id="start-btn" class="primary" disabled>Start</button>
+    </section>
+
+    <!-- Game: show this player's word -->
+    <section id="game" class="screen" hidden>
+      <p class="label">Your word</p>
+      <button id="word-card" class="card hidden-word">
+        <span id="word"></span>
+        <small>Tap to reveal / hide</small>
+      </button>
+      <p class="hint"><span id="game-count"></span> players in this round</p>
+      <button id="reset-btn">Reset</button>
+    </section>
+
+    <p id="status" class="status"></p>
+  </main>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
