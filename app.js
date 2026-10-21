@@ -23,7 +23,7 @@ const $ = (id) => document.getElementById(id);
 
 let peer = null;
 let isHost = false;
-let heartbeat = null;
+let lastTick = 0;
 let joinTimer = null;
 let retryTimer = null;
 
@@ -37,6 +37,14 @@ let lastWord = "";
 // Client-only state
 let hostConn = null;
 let hostLastSeen = 0;
+
+// Callbacks from a peer we've since replaced must not touch the current state,
+// so every event handler is bound to the peer it was registered on.
+function live(p, fn) {
+  return (...args) => {
+    if (peer === p) fn(...args);
+  };
+}
 
 // ---------- UI ----------
 
@@ -65,6 +73,13 @@ function render(state) {
     $("start-btn").disabled = !enough;
     $("need-more").hidden = enough;
   }
+}
+
+function renderDisconnected(message) {
+  show("lobby");
+  $("player-count").textContent = "…";
+  $("start-btn").disabled = true;
+  setStatus(message);
 }
 
 // ---------- Host ----------
@@ -114,95 +129,131 @@ function dropPlayer(id) {
   broadcast();
 }
 
-function hostHeartbeat() {
-  const now = Date.now();
-  for (const [id, conn] of conns) {
-    if (now - lastSeen.get(id) > TIMEOUT_MS) dropPlayer(id);
-    else conn.send({ type: "ping" });
-  }
-}
-
 function handleAction(action) {
   if (action === "start") startRound();
   else if (action === "reset") resetRound();
 }
 
-function becomeHost() {
+function becomeHost(p) {
   isHost = true;
-  heartbeat = setInterval(hostHeartbeat, PING_MS);
   broadcast();
 
-  peer.on("connection", (conn) => {
-    conn.on("open", () => {
+  p.on("connection", live(p, (conn) => {
+    conn.on("open", live(p, () => {
       conns.set(conn.peer, conn);
       lastSeen.set(conn.peer, Date.now());
       broadcast();
-    });
-    conn.on("data", (msg) => {
+    }));
+    conn.on("data", live(p, (msg) => {
+      if (conns.get(conn.peer) !== conn) return;
       lastSeen.set(conn.peer, Date.now());
       const type = msg && msg.type;
       if (type === "leave") dropPlayer(conn.peer);
       else handleAction(type);
-    });
-    conn.on("close", () => dropPlayer(conn.peer));
-  });
+    }));
+    conn.on("close", live(p, () => {
+      if (conns.get(conn.peer) === conn) dropPlayer(conn.peer);
+    }));
+  }));
 }
 
 // ---------- Client ----------
 
 function joinHost() {
-  peer = new Peer(PEER_OPTIONS);
-  joinTimer = setTimeout(() => restart(), JOIN_TIMEOUT_MS);
+  const p = new Peer(PEER_OPTIONS);
+  peer = p;
+  joinTimer = setTimeout(live(p, restart), JOIN_TIMEOUT_MS);
 
-  peer.on("open", () => {
-    hostConn = peer.connect(ROOM_ID, { reliable: true });
-    hostConn.on("open", () => {
+  p.on("open", live(p, () => {
+    if (hostConn) return; // broker reconnect, already talking to the host
+    const conn = p.connect(ROOM_ID, { reliable: true });
+    hostConn = conn;
+    conn.on("open", live(p, () => {
       clearTimeout(joinTimer);
       hostLastSeen = Date.now();
-      heartbeat = setInterval(() => {
-        if (Date.now() - hostLastSeen > TIMEOUT_MS) restart();
-        else hostConn.send({ type: "ping" });
-      }, PING_MS);
-    });
-    hostConn.on("data", (msg) => {
+    }));
+    conn.on("data", live(p, (msg) => {
       hostLastSeen = Date.now();
       if (msg && msg.type === "state") render(msg);
-    });
-    hostConn.on("close", () => restart());
-  });
+    }));
+    conn.on("close", live(p, restart));
+  }));
 
-  // Includes "peer-unavailable": the host vanished, so try to take over.
-  peer.on("error", () => restart());
+  p.on("error", live(p, (err) => {
+    // Losing the broker doesn't matter once we're talking to the host.
+    if (hostConn && hostConn.open && isBrokerError(err)) return;
+    restart(); // includes "peer-unavailable": the host vanished, so take over
+  }));
 }
 
 // ---------- Connection lifecycle ----------
 
+function isBrokerError(err) {
+  return ["network", "server-error", "socket-error", "socket-closed", "disconnected"].includes(err.type);
+}
+
 function connect() {
   setStatus("Connecting…");
-  peer = new Peer(ROOM_ID, PEER_OPTIONS);
-  peer.on("open", becomeHost);
-  peer.on("error", (err) => {
-    peer.destroy();
-    if (err.type === "unavailable-id") joinHost(); // someone is already hosting
-    else restart();
-  });
+  const p = new Peer(ROOM_ID, PEER_OPTIONS);
+  peer = p;
+  p.on("open", live(p, () => {
+    if (!isHost) becomeHost(p);
+  }));
+  p.on("error", live(p, (err) => {
+    if (!isHost && err.type === "unavailable-id") {
+      // Someone is already hosting — join them.
+      p.destroy();
+      joinHost();
+    } else if (isHost && isBrokerError(err)) {
+      // Lost the broker: existing players stay connected; tick() reconnects.
+    } else {
+      // Includes "unavailable-id" after a reconnect: another player took over.
+      restart();
+    }
+  }));
+}
+
+// Runs every PING_MS for both hosts and players.
+function tick() {
+  const now = Date.now();
+  // If this tab was frozen in the background, everyone else looks silent.
+  // Give them a fresh grace period instead of dropping them all.
+  const wasAsleep = now - lastTick > TIMEOUT_MS;
+  lastTick = now;
+  if (!peer) return;
+
+  // Phones drop the broker connection when locked or in the background;
+  // a host can't accept new players until it reconnects.
+  if (peer.disconnected && !peer.destroyed) peer.reconnect();
+
+  if (isHost) {
+    for (const [id, conn] of conns) {
+      if (wasAsleep) lastSeen.set(id, now);
+      else if (now - lastSeen.get(id) > TIMEOUT_MS) dropPlayer(id);
+      else conn.send({ type: "ping" });
+    }
+  } else if (hostConn && hostConn.open) {
+    if (wasAsleep) hostLastSeen = now;
+    if (now - hostLastSeen > TIMEOUT_MS) restart();
+    else hostConn.send({ type: "ping" });
+  }
 }
 
 // Tear everything down and reconnect. The random delay keeps players who lost
 // the host at the same moment from all claiming the room ID at once.
 function restart() {
   if (retryTimer) return;
-  clearInterval(heartbeat);
   clearTimeout(joinTimer);
-  if (peer) peer.destroy();
+  const old = peer;
   peer = null;
+  if (old) old.destroy();
   hostConn = null;
   isHost = false;
   conns.clear();
   lastSeen.clear();
   phase = "lobby";
   assignments = {};
-  setStatus("Reconnecting…");
+  renderDisconnected("Reconnecting…");
   retryTimer = setTimeout(() => {
     retryTimer = null;
     connect();
@@ -230,4 +281,16 @@ window.addEventListener("pagehide", () => {
   if (isHost && peer) peer.destroy();
 });
 
+// Coming back to a page restored from the browser's back/forward cache.
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) restart();
+});
+
+// Coming back to the foreground: check connections right away.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") tick();
+});
+
+lastTick = Date.now();
+setInterval(tick, PING_MS);
 connect();
