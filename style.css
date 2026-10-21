@@ -55,7 +55,7 @@ h1 {
 
 .screen[hidden] { display: none; }
 
-button, input {
+button {
   font: inherit;
   font-size: 1.1rem;
   padding: 14px 16px;
@@ -75,34 +75,8 @@ button.primary {
   font-weight: 600;
 }
 
-button.link {
-  border: none;
-  background: none;
-  color: var(--accent);
-  font-size: 0.95rem;
-  padding: 4px;
-}
-
-#join-form { display: flex; gap: 8px; }
-
-#join-code {
-  flex: 1;
-  min-width: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  text-align: center;
-}
-
-.divider { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
 .label { color: var(--muted); margin: 0; font-size: 0.9rem; }
 .hint { color: var(--muted); margin: 0; font-size: 0.9rem; }
-
-.code {
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  margin: 0;
-}
 
 .count { font-size: 1.5rem; margin: 16px 0 0; }
 #player-count { font-weight: 700; color: var(--accent); }

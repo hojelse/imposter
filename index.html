@@ -11,21 +11,8 @@
   <main>
     <h1>Imposter</h1>
 
-    <!-- Home: create or join a room -->
-    <section id="home" class="screen">
-      <button id="create-btn" class="primary">Create game</button>
-      <div class="divider">or join one</div>
-      <form id="join-form">
-        <input id="join-code" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters">
-        <button type="submit">Join</button>
-      </form>
-    </section>
-
     <!-- Lobby: the "connect" screen -->
     <section id="lobby" class="screen" hidden>
-      <p class="label">Room code</p>
-      <p id="room-code" class="code"></p>
-      <button id="copy-link" class="link">Copy invite link</button>
       <p class="count"><span id="player-count">1</span> connected</p>
       <p id="need-more" class="hint">Need at least 3 players to start</p>
       <button id="start-btn" class="primary" disabled>Start</button>

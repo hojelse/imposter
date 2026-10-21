@@ -1,26 +1,31 @@
 // Imposter — peer-to-peer game setup.
 //
-// There is no server of our own: the browser that creates a room becomes the
-// "host" and every other player connects directly to it over WebRTC (via
-// PeerJS, whose free public broker is only used to introduce peers).
+// There is no server of our own and only one room: everyone who opens the site
+// joins it. The first browser to claim the fixed room ID becomes the "host";
+// everyone else connects directly to it over WebRTC (via PeerJS, whose free
+// public broker is only used to introduce peers). If the host leaves, the
+// remaining players race to claim the ID again and one of them takes over.
 // The host owns the game state and sends each player their own view of it.
 // Any player may press Start/Reset; non-hosts just ask the host to do it.
 
 const MIN_PLAYERS = 3;
-const ID_PREFIX = "hojelse-imposter-";
-const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ";
+const ROOM_ID = "hojelse-imposter-room";
 // Lets tests point at a local PeerJS server; empty means the public broker.
 const PEER_OPTIONS = window.IMPOSTER_PEER_OPTS || {};
 // Closed tabs aren't reliably reported by WebRTC, so both sides ping and drop
 // the other if it goes quiet.
 const PING_MS = 2000;
 const TIMEOUT_MS = 7000;
+// How long a join may take before we start over (e.g. a stale host ID).
+const JOIN_TIMEOUT_MS = 10000;
 
 const $ = (id) => document.getElementById(id);
 
 let peer = null;
 let isHost = false;
-let roomCode = "";
+let heartbeat = null;
+let joinTimer = null;
+let retryTimer = null;
 
 // Host-only state
 const conns = new Map(); // peerId -> DataConnection
@@ -32,12 +37,11 @@ let lastWord = "";
 // Client-only state
 let hostConn = null;
 let hostLastSeen = 0;
-let heartbeat = null;
 
 // ---------- UI ----------
 
 function show(screen) {
-  for (const s of ["home", "lobby", "game"]) $(s).hidden = s !== screen;
+  for (const s of ["lobby", "game"]) $(s).hidden = s !== screen;
 }
 
 function setStatus(text) {
@@ -45,6 +49,7 @@ function setStatus(text) {
 }
 
 function render(state) {
+  setStatus("");
   if (state.phase === "playing") {
     show("game");
     const card = $("word-card");
@@ -55,7 +60,6 @@ function render(state) {
     $("game-count").textContent = state.roundSize;
   } else {
     show("lobby");
-    $("room-code").textContent = roomCode;
     $("player-count").textContent = state.count;
     const enough = state.count >= MIN_PLAYERS;
     $("start-btn").disabled = !enough;
@@ -123,24 +127,10 @@ function handleAction(action) {
   else if (action === "reset") resetRound();
 }
 
-function randomCode() {
-  let code = "";
-  for (let i = 0; i < 4; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
-  return code;
-}
-
-function createRoom() {
-  setStatus("Creating room…");
-  roomCode = randomCode();
-  peer = new Peer(ID_PREFIX + roomCode, PEER_OPTIONS);
-
-  peer.on("open", () => {
-    isHost = true;
-    setStatus("");
-    history.replaceState(null, "", "#" + roomCode);
-    heartbeat = setInterval(hostHeartbeat, PING_MS);
-    broadcast();
-  });
+function becomeHost() {
+  isHost = true;
+  heartbeat = setInterval(hostHeartbeat, PING_MS);
+  broadcast();
 
   peer.on("connection", (conn) => {
     conn.on("open", () => {
@@ -156,33 +146,21 @@ function createRoom() {
     });
     conn.on("close", () => dropPlayer(conn.peer));
   });
-
-  peer.on("error", (err) => {
-    if (err.type === "unavailable-id") {
-      // Code collision with another room — try a different code.
-      peer.destroy();
-      createRoom();
-    } else {
-      fail("Connection error: " + err.type);
-    }
-  });
 }
 
 // ---------- Client ----------
 
-function joinRoom(code) {
-  roomCode = code.toUpperCase();
-  setStatus("Joining " + roomCode + "…");
+function joinHost() {
   peer = new Peer(PEER_OPTIONS);
+  joinTimer = setTimeout(() => restart(), JOIN_TIMEOUT_MS);
 
   peer.on("open", () => {
-    hostConn = peer.connect(ID_PREFIX + roomCode, { reliable: true });
+    hostConn = peer.connect(ROOM_ID, { reliable: true });
     hostConn.on("open", () => {
-      setStatus("");
-      history.replaceState(null, "", "#" + roomCode);
+      clearTimeout(joinTimer);
       hostLastSeen = Date.now();
       heartbeat = setInterval(() => {
-        if (Date.now() - hostLastSeen > TIMEOUT_MS) fail("Lost connection to the host.");
+        if (Date.now() - hostLastSeen > TIMEOUT_MS) restart();
         else hostConn.send({ type: "ping" });
       }, PING_MS);
     });
@@ -190,22 +168,32 @@ function joinRoom(code) {
       hostLastSeen = Date.now();
       if (msg && msg.type === "state") render(msg);
     });
-    hostConn.on("close", () => fail("The host left the game."));
+    hostConn.on("close", () => restart());
   });
 
+  // Includes "peer-unavailable": the host vanished, so try to take over.
+  peer.on("error", () => restart());
+}
+
+// ---------- Connection lifecycle ----------
+
+function connect() {
+  setStatus("Connecting…");
+  peer = new Peer(ROOM_ID, PEER_OPTIONS);
+  peer.on("open", becomeHost);
   peer.on("error", (err) => {
-    if (err.type === "peer-unavailable") fail("No game found with code " + roomCode + ".");
-    else fail("Connection error: " + err.type);
+    peer.destroy();
+    if (err.type === "unavailable-id") joinHost(); // someone is already hosting
+    else restart();
   });
 }
 
-function sendAction(type) {
-  if (isHost) handleAction(type);
-  else if (hostConn && hostConn.open) hostConn.send({ type });
-}
-
-function fail(message) {
+// Tear everything down and reconnect. The random delay keeps players who lost
+// the host at the same moment from all claiming the room ID at once.
+function restart() {
+  if (retryTimer) return;
   clearInterval(heartbeat);
+  clearTimeout(joinTimer);
   if (peer) peer.destroy();
   peer = null;
   hostConn = null;
@@ -214,21 +202,19 @@ function fail(message) {
   lastSeen.clear();
   phase = "lobby";
   assignments = {};
-  history.replaceState(null, "", location.pathname + location.search);
-  show("home");
-  setStatus(message);
+  setStatus("Reconnecting…");
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    connect();
+  }, 500 + Math.random() * 1500);
+}
+
+function sendAction(type) {
+  if (isHost) handleAction(type);
+  else if (hostConn && hostConn.open) hostConn.send({ type });
 }
 
 // ---------- Wiring ----------
-
-$("create-btn").addEventListener("click", createRoom);
-
-$("join-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const code = $("join-code").value.trim();
-  if (code.length === 4) joinRoom(code);
-  else setStatus("Enter the 4-letter room code.");
-});
 
 $("start-btn").addEventListener("click", () => sendAction("start"));
 $("reset-btn").addEventListener("click", () => sendAction("reset"));
@@ -237,21 +223,11 @@ $("word-card").addEventListener("click", () => {
   $("word-card").classList.toggle("hidden-word");
 });
 
-$("copy-link").addEventListener("click", async () => {
-  const link = location.origin + location.pathname + "#" + roomCode;
-  try {
-    await navigator.clipboard.writeText(link);
-    setStatus("Invite link copied!");
-  } catch {
-    prompt("Share this link:", link);
-  }
-});
-
-// Tell the host right away when this tab closes, instead of waiting to time out.
+// When this tab closes, tell the host right away (or, as host, release the
+// room ID) instead of making everyone wait for a timeout.
 window.addEventListener("pagehide", () => {
   if (hostConn && hostConn.open) hostConn.send({ type: "leave" });
+  if (isHost && peer) peer.destroy();
 });
 
-// Opening an invite link (…/#ABCD) joins that room straight away.
-const hashCode = location.hash.slice(1);
-if (/^[A-Za-z]{4}$/.test(hashCode)) joinRoom(hashCode);
+connect();
