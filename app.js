@@ -78,13 +78,25 @@ function newRound() {
   showTurn();
 }
 
+// The imposter can still start, just less often: with 4 players they start
+// ~14% of the time instead of 25%. Set to 1 for a fair pick, 0 to never.
+const IMPOSTER_START_WEIGHT = 0.5;
+
+function pickStarter() {
+  let r = Math.random() * (players - 1 + IMPOSTER_START_WEIGHT);
+  for (let p = 0; p < players; p++) {
+    r -= p === imposter ? IMPOSTER_START_WEIGHT : 1;
+    if (r < 0) return p;
+  }
+  return players - 1; // floating-point safety
+}
+
 function nextPlayer() {
   turn++;
   if (turn < players) {
     showTurn();
   } else {
-    const first = Math.floor(Math.random() * players) + 1;
-    $("first-player").textContent = `${t("player")} ${first}`;
+    $("first-player").textContent = `${t("player")} ${pickStarter() + 1}`;
     show("done");
   }
 }
