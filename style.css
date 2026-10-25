@@ -136,6 +136,69 @@ button.primary:active { transform: scale(0.98); }
 /* Keeps its space so the layout doesn't jump when it appears. */
 button.primary.waiting { visibility: hidden; opacity: 0; }
 
+button.primary:disabled { opacity: 0.4; }
+
+button.secondary {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+button.text-btn {
+  align-self: flex-end;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 8px 0 8px 16px;
+}
+
+/* ---------- Categories ---------- */
+
+.category-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 1.05rem;
+  text-align: left;
+  opacity: 0.55;
+  transition: opacity 0.12s;
+}
+
+/* The check circle on the right of each row. */
+.category-list button::after {
+  content: "";
+  flex: 0 0 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.category-list button[aria-pressed="true"] { opacity: 1; font-weight: 600; }
+
+.category-list button[aria-pressed="true"]::after {
+  border-color: var(--accent);
+  background: var(--accent) center / 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E");
+}
+
 /* ---------- Number carousel ---------- */
 
 .picker {

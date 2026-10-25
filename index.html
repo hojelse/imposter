@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
   <header>
@@ -24,7 +24,15 @@
       <div id="picker" class="picker" tabindex="0" aria-label="Number of players"></div>
       <p class="label" data-text="players"></p>
     </div>
+    <button id="categories-btn" class="secondary"></button>
     <button id="start-btn" class="primary" data-text="start"></button>
+  </section>
+
+  <!-- Categories: choose which categories words are drawn from -->
+  <section id="categories" class="screen" hidden>
+    <button id="toggle-all-btn" class="text-btn"></button>
+    <div id="category-list" class="category-list"></div>
+    <button id="categories-done-btn" class="primary" data-text="done"></button>
   </section>
 
   <!-- Turn: one player at a time holds to see their word -->
@@ -58,8 +66,8 @@
     <button id="again-btn" class="primary" data-text="again"></button>
   </section>
 
-  <script src="words-en.js?v=14"></script>
-  <script src="words-da.js?v=14"></script>
-  <script src="app.js?v=14"></script>
+  <script src="words-en.js?v=15"></script>
+  <script src="words-da.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

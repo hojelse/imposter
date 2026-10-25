@@ -3,7 +3,8 @@
 A tiny single-phone website for setting up a round of the party game *Imposter*.
 No accounts, no network, no backend — just pass the phone around.
 
-1. Swipe the number carousel to choose how many players (3–20) and tap **Start**.
+1. Swipe the number carousel to choose how many players (3–20). Optionally tap **Categories**
+   to pick which categories to play (remembered per language). Then tap **Start**.
 2. Pass the phone around. Each player **holds** the screen to unblur their word and lets go to hide it.
    Everyone sees the round's category (e.g. *Movies*, *Things on a farm*, *Famous people*).
    One random player sees **Imposter** plus a vague hint; everyone else sees the same random word.

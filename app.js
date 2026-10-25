@@ -15,6 +15,7 @@ const LANGS = {
       players: "players", start: "Start", hold: "Hold", next: "Next", done: "Done",
       player: "Player", starts: "starts", again: "New round", imposter: "Imposter", hint: "Hint",
       secret: "Secret word", category: "Category",
+      categories: "Categories", all: "All", none: "None", ofTotal: "of",
     },
   },
   da: {
@@ -23,6 +24,7 @@ const LANGS = {
       players: "spillere", start: "Start", hold: "Hold", next: "Næste", done: "Færdig",
       player: "Spiller", starts: "starter", again: "Ny runde", imposter: "Imposter", hint: "Hint",
       secret: "Hemmeligt ord", category: "Kategori",
+      categories: "Kategorier", all: "Alle", none: "Ingen", ofTotal: "af",
     },
   },
 };
@@ -39,6 +41,7 @@ function applyLang() {
   document.documentElement.lang = lang;
   for (const el of document.querySelectorAll("[data-text]")) el.textContent = t(el.dataset.text);
   $("lang-btn").textContent = lang.toUpperCase();
+  loadCategories();
 }
 
 let players = 4;
@@ -53,8 +56,8 @@ let seen = false; // has the current player looked yet?
 // ---------- Screens ----------
 
 function show(screen) {
-  for (const s of ["setup", "turn", "done"]) $(s).hidden = s !== screen;
-  $("reset-btn").hidden = screen === "setup";
+  for (const s of ["setup", "categories", "turn", "done"]) $(s).hidden = s !== screen;
+  $("reset-btn").hidden = screen === "setup" || screen === "categories";
   $("lang-btn").hidden = screen !== "setup";
   $("version").hidden = screen !== "setup";
 }
@@ -73,12 +76,13 @@ function showTurn() {
 function newRound() {
   // Pick a category first so small categories come up as often as big ones.
   const categories = LANGS[lang].words;
-  const names = Object.keys(categories);
+  const names = [...enabled];
+  const total = names.reduce((sum, name) => sum + categories[name].length, 0);
   do {
     category = names[Math.floor(Math.random() * names.length)];
     const words = categories[category];
     [word, hint] = words[Math.floor(Math.random() * words.length)];
-  } while (word === lastWord);
+  } while (word === lastWord && total > 1);
   lastWord = word;
   imposter = Math.floor(Math.random() * players);
   turn = 0;
@@ -148,6 +152,69 @@ for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) {
 }
 // Long-pressing shouldn't open the phone's context menu.
 reveal.addEventListener("contextmenu", (e) => e.preventDefault());
+
+// ---------- Categories ----------
+
+let enabled = new Set(); // category names words are drawn from, for the current language
+
+const allCategories = () => Object.keys(LANGS[lang].words);
+const storageKey = () => `imposter-categories-${lang}`;
+
+// Each language remembers its own choice; everything is on by default.
+function loadCategories() {
+  const all = allCategories();
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(storageKey()));
+  } catch {}
+  const valid = Array.isArray(saved) ? saved.filter((name) => all.includes(name)) : [];
+  enabled = new Set(valid.length ? valid : all);
+  renderCategories();
+}
+
+function saveCategories() {
+  try {
+    localStorage.setItem(storageKey(), JSON.stringify([...enabled]));
+  } catch {}
+}
+
+function renderCategories() {
+  const all = allCategories();
+  const list = $("category-list");
+  list.replaceChildren(...all.map((name) => {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.setAttribute("aria-pressed", enabled.has(name));
+    b.addEventListener("click", () => {
+      enabled.has(name) ? enabled.delete(name) : enabled.add(name);
+      saveCategories();
+      renderCategories();
+    });
+    return b;
+  }));
+  const everything = enabled.size === all.length;
+  $("toggle-all-btn").textContent = everything ? t("none") : t("all");
+  $("categories-done-btn").disabled = enabled.size === 0;
+  $("categories-btn").textContent = `${t("categories")}: ` +
+    (everything ? t("all") : `${enabled.size} ${t("ofTotal")} ${all.length}`);
+}
+
+$("categories-btn").addEventListener("click", () => {
+  show("categories");
+  $("category-list").scrollTop = 0;
+});
+
+$("toggle-all-btn").addEventListener("click", () => {
+  const all = allCategories();
+  enabled = new Set(enabled.size === all.length ? [] : all);
+  saveCategories();
+  renderCategories();
+});
+
+$("categories-done-btn").addEventListener("click", () => {
+  show("setup");
+  scrollToCount(players, "instant"); // hidden carousels lose their position
+});
 
 // ---------- Setup: number carousel ----------
 
