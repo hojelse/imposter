@@ -213,6 +213,16 @@ button.primary.waiting { visibility: hidden; opacity: 0; }
 .reveal.imposter #word { color: var(--imposter); }
 #hint { color: var(--muted); font-size: 1.4rem; font-weight: 600; }
 
+#category {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.done-category { color: var(--muted); margin-top: 24px; }
+
 .eye {
   position: absolute;
   inset: 0;

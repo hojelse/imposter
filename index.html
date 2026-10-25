@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
   <header>
@@ -32,6 +32,7 @@
     <p id="turn-label" class="label"></p>
     <button id="reveal" class="reveal">
       <span class="secret">
+        <span id="category" hidden></span>
         <span id="word"></span>
         <span id="hint" hidden></span>
       </span>
@@ -52,12 +53,13 @@
     <div class="center">
       <p id="first-player" class="big"></p>
       <p class="label" data-text="starts"></p>
+      <p id="done-category" class="done-category"></p>
     </div>
     <button id="again-btn" class="primary" data-text="again"></button>
   </section>
 
-  <script src="words-en.js?v=13"></script>
-  <script src="words-da.js?v=13"></script>
-  <script src="app.js?v=13"></script>
+  <script src="words-en.js?v=14"></script>
+  <script src="words-da.js?v=14"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>

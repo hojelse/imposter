@@ -1,7 +1,8 @@
 // Imposter — pass-and-play on a single phone.
 //
 // Pick the number of players, then pass the phone around: each player holds
-// the screen to unblur their word (or "Imposter" plus a hint) and lets go to hide it again.
+// the screen to unblur the category and their word (or "Imposter" plus a hint)
+// and lets go to hide it again.
 
 const $ = (id) => document.getElementById(id);
 
@@ -13,7 +14,7 @@ const LANGS = {
     text: {
       players: "players", start: "Start", hold: "Hold", next: "Next", done: "Done",
       player: "Player", starts: "starts", again: "New round", imposter: "Imposter", hint: "Hint",
-      secret: "Secret word",
+      secret: "Secret word", category: "Category",
     },
   },
   da: {
@@ -21,7 +22,7 @@ const LANGS = {
     text: {
       players: "spillere", start: "Start", hold: "Hold", next: "Næste", done: "Færdig",
       player: "Spiller", starts: "starter", again: "Ny runde", imposter: "Imposter", hint: "Hint",
-      secret: "Hemmeligt ord",
+      secret: "Hemmeligt ord", category: "Kategori",
     },
   },
 };
@@ -42,6 +43,7 @@ function applyLang() {
 
 let players = 4;
 let imposter = 0; // index of the imposter for this round
+let category = ""; // shown to everyone
 let word = "";
 let hint = ""; // shown to the imposter only
 let lastWord = "";
@@ -69,10 +71,14 @@ function showTurn() {
 // ---------- Game ----------
 
 function newRound() {
-  const words = LANGS[lang].words;
+  // Pick a category first so small categories come up as often as big ones.
+  const categories = LANGS[lang].words;
+  const names = Object.keys(categories);
   do {
+    category = names[Math.floor(Math.random() * names.length)];
+    const words = categories[category];
     [word, hint] = words[Math.floor(Math.random() * words.length)];
-  } while (word === lastWord && words.length > 1);
+  } while (word === lastWord);
   lastWord = word;
   imposter = Math.floor(Math.random() * players);
   turn = 0;
@@ -98,6 +104,7 @@ function nextPlayer() {
     showTurn();
   } else {
     $("first-player").textContent = `${t("player")} ${pickStarter() + 1}`;
+    $("done-category").textContent = `${t("category")}: ${category}`;
     show("done");
   }
 }
@@ -106,6 +113,8 @@ function nextPlayer() {
 
 function showWord() {
   const isImposter = turn === imposter;
+  $("category").textContent = category;
+  $("category").hidden = false;
   $("word").textContent = isImposter ? t("imposter") : word;
   $("hint").textContent = `${t("hint")}: ${hint}`;
   $("hint").hidden = !isImposter;
@@ -121,6 +130,7 @@ function showWord() {
 // so its length or colour can't give anything away.
 function hideWord() {
   $("word").textContent = t("secret");
+  $("category").hidden = true;
   $("hint").hidden = true;
   $("reveal").classList.remove("imposter", "revealed");
   if (seen) $("next-btn").classList.remove("waiting");
