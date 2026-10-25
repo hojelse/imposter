@@ -54,6 +54,7 @@ function show(screen) {
   for (const s of ["setup", "turn", "done"]) $(s).hidden = s !== screen;
   $("reset-btn").hidden = screen === "setup";
   $("lang-btn").hidden = screen !== "setup";
+  $("version").hidden = screen !== "setup";
 }
 
 function showTurn() {
@@ -209,6 +210,9 @@ $("lang-btn").addEventListener("click", () => {
 });
 
 applyLang();
+
+// The version is the ?v= this script was loaded with (see index.html).
+$("version").textContent = "v" + (new URL(document.currentScript.src).searchParams.get("v") || "");
 
 $("next-btn").addEventListener("click", nextPlayer);
 $("again-btn").addEventListener("click", newRound);

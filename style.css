@@ -58,6 +58,7 @@ p { margin: 0; }
 header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   min-height: 56px;
 }
 
@@ -79,6 +80,9 @@ button.lang {
   font-weight: 600;
   letter-spacing: 0.05em;
 }
+
+.version { color: var(--muted); font-size: 0.8rem; opacity: 0.6; }
+.version[hidden] { visibility: hidden; display: inline; }
 
 button.lang[hidden], button.reset[hidden] { visibility: hidden; display: block; }
 

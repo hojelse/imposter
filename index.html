@@ -7,14 +7,17 @@
   <meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Imposter</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
   <header>
     <button id="lang-btn" class="lang" aria-label="Language"></button>
+    <span id="version" class="version"></span>
     <button id="reset-btn" class="reset" hidden aria-label="Reset">&times;</button>
   </header>
 
+  <!-- Bump ?v= on every release: it makes phones fetch the new files and is
+       also the version number shown on the start screen. -->
   <!-- Setup: swipe to choose the number of players -->
   <section id="setup" class="screen">
     <div class="center">
@@ -53,8 +56,8 @@
     <button id="again-btn" class="primary" data-text="again"></button>
   </section>
 
-  <script src="words-en.js?v=12"></script>
-  <script src="words-da.js?v=12"></script>
-  <script src="app.js?v=12"></script>
+  <script src="words-en.js?v=13"></script>
+  <script src="words-da.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
